@@ -1,0 +1,48 @@
+.App {
+  margin-top: 0 !important;
+}
+
+.App .main-container {
+  height: 100vh;
+}
+.App .main-header {
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.App .my-contacts {
+  padding: 10px 20px;
+  height: 100%;
+  overflow-y: scroll;
+}
+
+.App .search-input-container {
+  padding: 10px 20px;
+}
+
+.App .search-input-container .MuiInputAdornment-positionStart {
+  position: absolute;
+  z-index: 10;
+  margin-left: 10px;
+}
+
+.App .search-input-container input {
+  padding: 10px 12px 10px 40px;
+}
+
+.App .select-all-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0px 20px;
+}
+
+.App .select-all-container .select-all {
+  display: flex;
+  align-items: center;
+  font-weight: 900;
+}
+
+

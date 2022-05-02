@@ -1,0 +1,35 @@
+.SideBarFilters {
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 0px 15px 0px;
+  height: 100vh;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.SideBarFilters .filters-button{
+  margin-bottom: 20px;
+}
+
+.SideBarFilters .filter-tags {
+  height: 180px;
+  overflow-y: scroll;
+  margin: 10px 0;
+}
+
+.SideBarFilters .filter-tags .filter-tag {
+  padding: 5px 10px;
+  height: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.SideBarFilters .filter-tags .filter-tag:nth-child(even) {
+  background-color: #f3f5f9;
+}
+
+.SideBarFilters .filter-tags .filter-tag:hover {
+  background-color: #ccc;
+}
