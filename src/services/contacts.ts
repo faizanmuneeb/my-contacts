@@ -7,11 +7,31 @@ const TEAM_ENDPOINT = "https://api-teams.chatdaddy.tech";
 const REFRESH_TOKEN = "059c420e-7424-431f-b23b-af0ecabfe7b8";
 const TEAM_ID = "a001994b-918b-4939-8518-3377732e4e88";
 
-export const getContacts = async (): Promise<Contact[]> => {
+const getQueryParams = (queryParams: any) => {
+  let query = "";
+  Object.keys(queryParams).forEach((objKey) => {
+    if (Array.isArray(queryParams[objKey])) {
+      queryParams[objKey].forEach((arrayItem: string) => {
+        query += objKey + "=" + arrayItem + "&";
+      });
+    } else {
+      query += objKey + "=" + queryParams[objKey] + "&";
+    }
+  });
+  return query;
+};
+
+export const getContacts = async (
+  queryParams: any = {}
+): Promise<Contact[]> => {
   try {
+    const params = getQueryParams(queryParams);
     const configs = await getAuthConfigs();
-    const response = await axios.get(`${API_ENDPOINT}/contacts`, configs);
-    return response.data.contacts.splice(0, 5);
+    const response = await axios.get(
+      `${API_ENDPOINT}/contacts?${params}`,
+      configs
+    );
+    return response.data.contacts;
   } catch (error) {
     throw new Error("fetching contacts failed");
   }

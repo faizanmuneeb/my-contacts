@@ -5,7 +5,7 @@ import {
   Search,
 } from "@mui/icons-material";
 import { Checkbox, Grid, Typography } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AppButton from "../../components/AppButton/AppButton";
 import Heading from "../../components/Heading/Heading";
 import InputBox from "../../components/InputBox/InputBox";
@@ -17,22 +17,13 @@ import { getContacts, getTags } from "../../services/contacts";
 import "./App.css";
 
 const App = () => {
+  const [filters, setFilters] = useState<any>({});
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [selectAll, setSelectAll] = useState<boolean>(false);
   const [myContacts, setMyContacts] = useState<Contact[]>([]);
   const [myTags, setMyTags] = useState<Tag[]>([]);
-  const [filteredContacts, setFilteredContacts] = useState<Contact[]>([]);
-  const [filters, setFilters] = useState<{
-    minMessagesReceived: number | undefined;
-    minMessagesSent: number | undefined;
-    maxMessagesReceived: number | undefined;
-    maxMessagesSent: number | undefined;
-  }>({
-    minMessagesReceived: undefined,
-    minMessagesSent: undefined,
-    maxMessagesReceived: undefined,
-    maxMessagesSent: undefined,
-  });
+  const timeout = useRef<any>();
+
   useEffect(() => {
     (async () => {
       const contacts = await getContacts();
@@ -44,52 +35,39 @@ const App = () => {
     return () => {};
   }, []);
 
-  useEffect(() => {
-    const includedTags = myTags.filter((tag) => tag.included);
-    const excludedTags = myTags.filter((tag) => tag.excluded);
-    const filteredContacts = myContacts.filter((myContact) => {
-      return (
-        myContact.name
-          .toString()
-          .toLowerCase()
-          .indexOf(searchFilter.toLowerCase()) > -1 &&
-        (filters.minMessagesSent === undefined ||
-          filters.minMessagesSent <= myContact.messagesSent) &&
-        (filters.minMessagesReceived === undefined ||
-          filters.minMessagesReceived <= myContact.messagesReceived) &&
-        (filters.maxMessagesSent === undefined ||
-          filters.maxMessagesSent >= myContact.messagesSent) &&
-        (filters.maxMessagesReceived === undefined ||
-          filters.maxMessagesReceived >= myContact.messagesReceived) &&
-        (includedTags.length === 0 ||
-          myContact.tags.some((contactTag) =>
-            includedTags.some(
-              (includedTag) => includedTag.name === contactTag.name
-            )
-          )) &&
-        (excludedTags.length === 0 ||
-          !myContact.tags.some((contactTag) =>
-            excludedTags.some(
-              (excludedTag) => excludedTag.name === contactTag.name
-            )
-          ))
-      );
-    });
+  const onFiltersSubmit = async (filters: any) => {
+    setFilters(filters);
+    const queryParams = {
+      minMessagesRecv: filters.minMessagesReceived || 0,
+      minMessagesSent: filters.minMessagesSent || 0,
+      maxMessagesRecv: filters.maxMessagesReceived || 0,
+      maxMessagesSent: filters.maxMessagesSent || 0,
+      q: filters.search || "",
+      tags: filters.includedTags || [],
+      notTags: filters.excludedTags || [],
+    };
+    const contacts = await getContacts(queryParams);
+    setMyContacts(contacts);
+  };
 
-    setFilteredContacts(filteredContacts);
+  const onSearch = (value: string) => {
+    setSearchFilter(value);
 
-    return () => {};
-  }, [searchFilter, myContacts, filters]);
+    clearTimeout(timeout.current);
 
+    timeout.current = setTimeout(() => {
+      onFiltersSubmit({ ...filters, search: value });
+    }, 250);
+  };
   return (
     <Grid container className='App'>
       <Grid item xs={4}>
         <SideBarFilters
           tags={myTags}
           setTags={setMyTags}
-          onFiltersSubmit={(filters: any) => {
-            setFilters(filters);
-          }}
+          onFiltersSubmit={(value: any) =>
+            onFiltersSubmit({ ...value, search: searchFilter })
+          }
         />
       </Grid>
       <Grid item xs={8}>
@@ -103,7 +81,7 @@ const App = () => {
               placeholder='Search contacts'
               startIcon={<Search sx={{ color: "#ccc" }} />}
               value={searchFilter}
-              onChange={(value: string) => setSearchFilter(value)}
+              onChange={onSearch}
             />
           </div>
           <div className='select-all-container'>
@@ -128,7 +106,7 @@ const App = () => {
             </div>
           </div>
           <div className='my-contacts'>
-            {filteredContacts.map((contact) => (
+            {myContacts.map((contact) => (
               <MyContact
                 contact={contact}
                 key={contact.id}

@@ -47,7 +47,7 @@ const InputBox = ({
 }: {
   startIcon?: ReactNode;
   placeholder: string;
-  value: string | number | undefined;
+  value?: string | number | undefined;
   onChange: Function;
   type?: string;
 }) => {

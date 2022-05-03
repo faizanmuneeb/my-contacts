@@ -17,19 +17,31 @@ const SideBarFilters = ({
   setTags: Function;
   onFiltersSubmit: Function;
 }) => {
+  const [includedTags, setIncludedTags] = useState<any>({});
+  const [excludedTags, setExcludedTags] = useState<any>({});
   const [minMessagesSent, setMinMessagesSent] = useState<number>();
   const [maxMessagesSent, setMaxMessagesSent] = useState<number>();
   const [minMessagesReceived, setMinMessagesReceived] = useState<number>();
   const [maxMessagesReceived, setMaxMessagesReceived] = useState<number>();
 
-  const onTagIncluded = (index: number) => {
-    tags[index].included = !tags[index].included;
-    setTags([...tags]);
+  const onTagIncluded = (tagName: string) => {
+    const _includedTags = { ...includedTags };
+    if (_includedTags[tagName]) {
+      delete _includedTags[tagName];
+    } else {
+      _includedTags[tagName] = tagName;
+    }
+    setIncludedTags(_includedTags);
   };
 
-  const onTagExcluded = (index: number) => {
-    tags[index].excluded = !tags[index].excluded;
-    setTags([...tags]);
+  const onTagExcluded = (tagName: string) => {
+    const _excludedTags = { ...excludedTags };
+    if (_excludedTags[tagName]) {
+      delete _excludedTags[tagName];
+    } else {
+      _excludedTags[tagName] = tagName;
+    }
+    setExcludedTags(_excludedTags);
   };
 
   const FilterTag = ({
@@ -49,7 +61,7 @@ const SideBarFilters = ({
 
   return (
     <Box className='SideBarFilters'>
-      <div className="filters-container">
+      <div className='filters-container'>
         <Grid container sx={{ m: 0, alignItems: "center" }}>
           <Grid item xs={1}>
             <Menu />
@@ -76,8 +88,8 @@ const SideBarFilters = ({
               <FilterTag
                 tag={tag}
                 key={tag.name}
-                showCheck={tag.included}
-                onClick={() => onTagIncluded(index)}
+                showCheck={includedTags[tag.name]}
+                onClick={() => onTagIncluded(tag.name)}
               />
             ))}
           </div>
@@ -89,8 +101,8 @@ const SideBarFilters = ({
               <FilterTag
                 tag={tag}
                 key={tag.name}
-                showCheck={tag.excluded}
-                onClick={() => onTagExcluded(index)}
+                showCheck={excludedTags[tag.name]}
+                onClick={() => onTagExcluded(tag.name)}
               />
             ))}
           </div>
@@ -147,6 +159,8 @@ const SideBarFilters = ({
               minMessagesSent,
               maxMessagesReceived,
               maxMessagesSent,
+              includedTags: Object.values(includedTags),
+              excludedTags: Object.values(excludedTags),
             })
           }
         />
