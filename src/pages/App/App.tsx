@@ -6,6 +6,7 @@ import {
 } from "@mui/icons-material";
 import { Checkbox, Grid, Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
+import { createNull } from "typescript";
 import AppButton from "../../components/AppButton/AppButton";
 import Heading from "../../components/Heading/Heading";
 import InputBox from "../../components/InputBox/InputBox";
@@ -20,20 +21,48 @@ const App = () => {
   const [filters, setFilters] = useState<any>({});
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [selectAll, setSelectAll] = useState<boolean>(false);
+
   const [myContacts, setMyContacts] = useState<Contact[]>([]);
   const [myTags, setMyTags] = useState<Tag[]>([]);
+  const [nextPage, setNextPage] = useState<string>("");
   const timeout = useRef<any>();
 
-  useEffect(() => {
-    (async () => {
-      const contacts = await getContacts();
-      const tags = await getTags();
-      setMyContacts(contacts);
-      setMyTags(tags);
-    })();
+  const contactsListRef = useRef<HTMLDivElement>(null);
 
-    return () => {};
+  const handleScroll = async () => {
+    const el = contactsListRef.current;
+    if (el && el.scrollHeight <= el.offsetHeight + el.scrollTop) {
+      if (nextPage) {
+        const contacts = await fetchContacts({
+          page: encodeURI(nextPage),
+        });
+        setMyContacts([...myContacts, ...contacts]);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const el = contactsListRef.current;
+    el?.removeEventListener("scroll", handleScroll);
+    el?.addEventListener("scroll", handleScroll);
+  }, [nextPage]);
+
+  useEffect(() => {
+    fetchInitialData();
   }, []);
+
+  const fetchContacts = async (queryParams: object) => {
+    const { contacts, nextPage } = await getContacts(queryParams);
+    setNextPage(nextPage);
+    return contacts;
+  };
+
+  const fetchInitialData = async () => {
+    const contacts = await fetchContacts({});
+    setMyContacts(contacts);
+    const tags = await getTags();
+    setMyTags(tags);
+  };
 
   const onFiltersSubmit = async (filters: any) => {
     setFilters(filters);
@@ -46,7 +75,7 @@ const App = () => {
       tags: filters.includedTags || [],
       notTags: filters.excludedTags || [],
     };
-    const contacts = await getContacts(queryParams);
+    const contacts = await fetchContacts(queryParams);
     setMyContacts(contacts);
   };
 
@@ -105,13 +134,11 @@ const App = () => {
               <AppButton label='Export All' onClick={() => {}} />
             </div>
           </div>
-          <div className='my-contacts'>
-            {myContacts.map((contact) => (
-              <MyContact
-                contact={contact}
-                key={contact.id}
-                selectAll={selectAll}
-              />
+          <div className='my-contacts' ref={contactsListRef}>
+            {myContacts.map((contact, index) => (
+              <div key={contact.id}>
+                <MyContact contact={contact} selectAll={selectAll} />
+              </div>
             ))}
           </div>
         </div>

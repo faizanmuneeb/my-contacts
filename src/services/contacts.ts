@@ -23,7 +23,7 @@ const getQueryParams = (queryParams: any) => {
 
 export const getContacts = async (
   queryParams: any = {}
-): Promise<Contact[]> => {
+): Promise<{ contacts: Contact[]; nextPage: string }> => {
   try {
     const params = getQueryParams(queryParams);
     const configs = await getAuthConfigs();
@@ -31,7 +31,11 @@ export const getContacts = async (
       `${API_ENDPOINT}/contacts?${params}`,
       configs
     );
-    return response.data.contacts;
+    let { contacts, nextPage } = response.data;
+    // if (nextPage) {
+    //   nextPage = JSON.parse(nextPage).id;
+    // }
+    return { contacts, nextPage };
   } catch (error) {
     throw new Error("fetching contacts failed");
   }
